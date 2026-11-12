@@ -52,13 +52,18 @@ final class Prefs {
     return (fontName.isEmpty ? nil : NSFont(name: fontName, size: size)) ?? .systemFont(ofSize: size)
   }
 
+  /// On once registered, even while macOS still waits for the user to allow it in Login Items.
   var launchAtLogin: Bool {
-    get { SMAppService.mainApp.status == .enabled }
+    get { [.enabled, .requiresApproval].contains(SMAppService.mainApp.status) }
     set {
+      guard newValue != launchAtLogin else { return }
       do { newValue ? try SMAppService.mainApp.register() : try SMAppService.mainApp.unregister() }
       catch { NSSound.beep() }
     }
   }
+
+  /// macOS blocked opening at login until the user allows NoteIt in System Settings → Login Items.
+  var launchAtLoginNeedsApproval: Bool { SMAppService.mainApp.status == .requiresApproval }
 
   private func save() {
     defaults.set(defaultColor.rawValue, forKey: "defaultColor")

@@ -7,7 +7,8 @@ SwiftUI and AppKit, Swift 6, macOS 15 or later.
 ## Features
 
 **Stickies features**
-- As many notes as you like: ⌘N, the + on any note, or the Dock menu. All notes reopen where you left them.
+- As many notes as you like: ⌘N, the + on any note, or the menu bar icon. All notes reopen where you left them.
+- Lives in the menu bar, with no Dock icon. Settings → General → Startup can open it at login.
 - Eight preset paper colors per note (⌘1–⌘8, the palette button, or right-click), all tuned for easy reading (text contrast of 7:1 or more)
 - Rich text, images, links, lists, and rulers; drag the bottom-right corner to resize
 - Float on top (⌥⌘F), translucent (⌥⌘T), collapse (⌘M, or double-click the strip at the top)
@@ -20,7 +21,7 @@ SwiftUI and AppKit, Swift 6, macOS 15 or later.
 
 **Titles, pinning, and All Notes**
 - Give any note a title: File → Set Title… (⌥⌘R), right-click a note, or type it in All Notes. Without a title, the first line stands in.
-- **All Notes** (⌘0, Window menu, or Dock menu): a OneNote-style window with three columns. On the left: All Notes, Favorites, On Desktop, Reminders, Archive, Trash, your notebooks, and #tags. In the middle: the notes, with search and sorting. On the right: the note.
+- **All Notes** (⌘0, Window menu, or the menu bar icon): a OneNote-style window with three columns. On the left: All Notes, Favorites, On Desktop, Reminders, Archive, Trash, your notebooks, and #tags. In the middle: the notes, with search and sorting. On the right: the note.
 - Pinned notes show on the desktop as stickies. ✕ on a sticky (or the pin button, ⌥⌘P) takes it off the desktop; it stays in All Notes. Pin it again to bring it back.
 - A pinned note edited in All Notes updates on the desktop as you type, and the other way around
 
@@ -61,7 +62,9 @@ SwiftUI and AppKit, Swift 6, macOS 15 or later.
 ```bash
 make run         # build and open build/NoteIt.app
 make build       # release build and app bundle
+make install     # build, copy to /Applications, and open it
 make zip         # build/NoteIt-<version>-macos.zip for a release
+make deploy      # release: bump version, GitHub release, update the Homebrew tap (V=1.2.0 to choose)
 make swift-test  # run tests
 ```
 

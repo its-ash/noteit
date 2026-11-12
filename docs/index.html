@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NoteIt: sticky notes for your Mac, with AI built in</title>
+  <meta name="description" content="NoteIt puts colored sticky notes on your Mac desktop. Rich text, checklists, reminders, notebooks and tags, sync, and one-click AI that rewrites, summarizes, or turns a note into a checklist.">
+  <meta property="og:title" content="NoteIt: sticky notes for your Mac, with AI built in">
+  <meta property="og:description" content="Colored sticky notes on your desktop, with checklists, reminders, sync, and one-click AI.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --surface: #ffffff;
+      --text: #1d1d1f;
+      --text-2: #424245;
+      --text-3: #6e6e73;
+      --accent: #0071e3;
+      --accent-hover: #0077ed;
+      --border-soft: rgba(0, 0, 0, 0.06);
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.14);
+      --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --font-mono: "SF Mono", "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+      --yellow: #fff59a; --yellow-bar: #f5cf3d;
+      --blue: #cfe8ff;   --blue-bar: #9fcbf5;
+      --green: #d4f5c4;  --green-bar: #a6e08a;
+      --pink: #ffd6e7;   --pink-bar: #f7a8c8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 17px;
+      line-height: 1.47;
+      letter-spacing: -0.022em;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); }
+    a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 32px; }
+
+    /* Nav */
+    nav {
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(245, 245, 247, 0.72);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--border-soft);
+    }
+    nav .wrap { height: 52px; display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 600; font-size: 19px; color: var(--text); }
+    .brand:hover { color: var(--text); }
+    .brand img { width: 28px; height: 28px; }
+    nav .links { display: flex; gap: 24px; font-size: 14px; }
+    nav .links a { color: var(--text-2); }
+    nav .links a:hover { color: var(--accent); }
+
+    /* Hero */
+    .hero { text-align: center; padding: 96px 0 40px; }
+    .hero img.icon { width: 112px; height: 112px; margin-bottom: 24px; filter: drop-shadow(0 10px 24px rgba(0,0,0,0.12)); }
+    .hero h1 { font-family: var(--font-display); font-size: clamp(42px, 6vw, 68px); font-weight: 700; line-height: 1.05; letter-spacing: -0.025em; margin-bottom: 20px; }
+    .hero p.lead { font-size: clamp(19px, 2vw, 23px); color: var(--text-2); max-width: 680px; margin: 0 auto 36px; line-height: 1.4; }
+    .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-bottom: 16px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 980px; font-size: 17px; font-weight: 500; border: 0; cursor: pointer; font-family: inherit; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); color: #fff; }
+    .btn-secondary { background: var(--surface); color: var(--text); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); }
+    .btn-secondary:hover { color: var(--text); background: #fafafa; }
+    .meta { font-size: 13px; color: var(--text-3); }
+
+    /* Brew command */
+    .brew {
+      display: inline-flex; align-items: center; gap: 12px; margin: 28px auto 0;
+      background: #1d1d1f; color: #f5f5f7; border-radius: 14px; padding: 12px 12px 12px 20px;
+      font-family: var(--font-mono); font-size: 15px; letter-spacing: 0; max-width: 100%;
+    }
+    .brew code { white-space: nowrap; overflow-x: auto; }
+    .brew .prompt { color: #8e8e93; user-select: none; }
+    .brew button { background: rgba(255,255,255,0.12); color: #f5f5f7; border: 0; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-family: var(--font-sans); cursor: pointer; }
+    .brew button:hover { background: rgba(255,255,255,0.2); }
+
+    /* Desktop mockup */
+    .desk {
+      position: relative; margin: 64px auto 0; height: 440px; max-width: 980px;
+      border-radius: 22px; overflow: hidden; box-shadow: var(--shadow-lg);
+      background: linear-gradient(135deg, #3a5a8c 0%, #6b4f8a 55%, #b0627a 100%);
+    }
+    .menubar {
+      height: 28px; background: rgba(255,255,255,0.28); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      display: flex; align-items: center; justify-content: flex-end; gap: 16px; padding: 0 16px; color: #fff; font-size: 13px; font-weight: 500;
+    }
+    .menubar .noteit-icon { width: 16px; height: 16px; background: url(logo.svg) center/contain no-repeat; filter: grayscale(1) brightness(3); }
+    .menubar .pop {
+      position: absolute; top: 34px; right: 72px; width: 220px; background: rgba(246,246,246,0.92); color: var(--text);
+      border-radius: 10px; padding: 6px; box-shadow: 0 12px 32px rgba(0,0,0,0.25); font-size: 13px; text-align: left;
+    }
+    .menubar .pop div { padding: 4px 10px; border-radius: 5px; }
+    .menubar .pop div.on { background: var(--accent); color: #fff; }
+    .menubar .pop hr { border: 0; border-top: 1px solid rgba(0,0,0,0.1); margin: 5px 8px; }
+    .sticky {
+      position: absolute; width: 230px; border-radius: 10px; box-shadow: 0 14px 30px rgba(0,0,0,0.28);
+      font-size: 14px; line-height: 1.5; color: #1d1d1f; text-align: left; overflow: hidden;
+    }
+    .sticky .bar { height: 22px; display: flex; align-items: center; justify-content: flex-end; padding: 0 8px; font-size: 11px; font-weight: 600; color: rgba(0,0,0,0.55); }
+    .sticky .body { padding: 10px 14px 14px; }
+    .sticky b { display: block; margin-bottom: 4px; }
+    .s1 { left: 6%; top: 70px; background: var(--yellow); transform: rotate(-2deg); }
+    .s1 .bar { background: var(--yellow-bar); }
+    .s2 { left: 34%; top: 150px; background: var(--blue); transform: rotate(1.5deg); }
+    .s2 .bar { background: var(--blue-bar); justify-content: space-between; }
+    .s3 { left: 62%; top: 230px; background: var(--green); transform: rotate(-1deg); width: 250px; }
+    .s3 .bar { background: var(--green-bar); }
+    .spark { display: inline-block; padding: 1px 8px; border-radius: 6px; background: rgba(0,0,0,0.08); font-size: 11px; font-weight: 600; }
+
+    /* Sections */
+    section { padding: 96px 0 0; }
+    section h2 { font-family: var(--font-display); font-size: clamp(32px, 4vw, 44px); font-weight: 700; letter-spacing: -0.02em; text-align: center; margin-bottom: 12px; }
+    section p.sub { text-align: center; color: var(--text-2); font-size: 19px; max-width: 640px; margin: 0 auto 48px; }
+
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .card { background: var(--surface); border-radius: 18px; padding: 28px; box-shadow: var(--shadow-sm); }
+    .card .dot { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; font-size: 20px; margin-bottom: 16px; }
+    .card h3 { font-size: 19px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.015em; }
+    .card p { font-size: 15px; color: var(--text-2); line-height: 1.5; }
+    .y { background: var(--yellow); } .b { background: var(--blue); } .g { background: var(--green); } .p { background: var(--pink); }
+
+    .ai { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch; }
+    .ai .card ul { list-style: none; margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .ai .card li { font-size: 14px; background: var(--bg); border-radius: 980px; padding: 5px 12px; color: var(--text-2); }
+
+    .install { background: var(--surface); border-radius: 24px; padding: 48px; box-shadow: var(--shadow-sm); }
+    .install ol { max-width: 560px; margin: 0 auto; padding-left: 22px; color: var(--text-2); }
+    .install li { margin-bottom: 14px; }
+    .install code { font-family: var(--font-mono); font-size: 14px; background: var(--bg); padding: 2px 7px; border-radius: 6px; color: var(--text); letter-spacing: 0; }
+
+    footer { padding: 96px 0 48px; text-align: center; font-size: 13px; color: var(--text-3); }
+    footer a { color: var(--text-2); }
+
+    @media (max-width: 860px) {
+      .grid, .ai { grid-template-columns: 1fr; }
+      .desk { height: 520px; }
+      .s1 { left: 5%; top: 60px; } .s2 { left: 30%; top: 190px; } .s3 { left: 12%; top: 330px; }
+      .menubar .pop { display: none; }
+      nav .links a.hide-sm { display: none; }
+      .install { padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="wrap">
+      <a class="brand" href="#"><img src="logo.svg" alt="">NoteIt</a>
+      <div class="links">
+        <a class="hide-sm" href="#features">Features</a>
+        <a class="hide-sm" href="#ai">AI</a>
+        <a href="#install">Install</a>
+        <a href="https://github.com/its-ash/noteit">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <header class="hero wrap">
+      <img class="icon" src="logo.svg" alt="NoteIt app icon">
+      <h1>Sticky notes,<br>made smarter.</h1>
+      <p class="lead">NoteIt puts colored notes right on your Mac desktop. Jot something down, tick off a checklist, set a reminder, and let AI tidy up the words with one click.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="https://github.com/its-ash/noteit/releases/latest">Download for Mac</a>
+        <a class="btn btn-secondary" href="#install">Install with Homebrew</a>
+      </div>
+      <p class="meta">Free · macOS 15 Sequoia or later</p>
+
+      <div class="desk" role="img" aria-label="A Mac desktop with three NoteIt sticky notes and the NoteIt menu bar menu open">
+        <div class="menubar">
+          <span class="noteit-icon"></span>
+          <span>Wed 12 Nov&nbsp;&nbsp;9:41</span>
+          <div class="pop">
+            <div class="on">New Note</div>
+            <div>New Note from Clipboard</div>
+            <div>All Notes</div>
+            <div>Search All Notes</div>
+            <hr>
+            <div>Settings…</div>
+            <hr>
+            <div>Quit NoteIt</div>
+          </div>
+        </div>
+        <div class="sticky s1">
+          <div class="bar">3/5</div>
+          <div class="body">
+            <b>Launch week</b>
+            ☑ Final screenshots<br>
+            ☑ Write release notes<br>
+            ☑ Record demo<br>
+            ☐ Post on the blog<br>
+            ☐ Tell the newsletter
+          </div>
+        </div>
+        <div class="sticky s2">
+          <div class="bar"><span class="spark">✦ Summarize</span><span>🔔 5 PM</span></div>
+          <div class="body">
+            <b>Call with Priya</b>
+            Agreed to ship the beta on Friday. Priya owns the docs; I handle the build and the tap. #work
+          </div>
+        </div>
+        <div class="sticky s3">
+          <div class="bar"></div>
+          <div class="body">
+            <b>Ideas</b>
+            A reading list that sorts itself by how long each article takes. #idea
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section id="features">
+      <div class="wrap">
+        <h2>Everything a sticky note should do.</h2>
+        <p class="sub">Quick to grab, out of your way, and right where you left it.</p>
+        <div class="grid">
+          <div class="card"><div class="dot y">🗒️</div><h3>Notes on your desktop</h3><p>As many notes as you like, in eight easy-to-read colors. Float them on top, make them translucent, or collapse them to a strip.</p></div>
+          <div class="card"><div class="dot g">☑</div><h3>Clickable checklists</h3><p>Click a box to tick it. Each note shows its progress, like 3/5, in its header.</p></div>
+          <div class="card"><div class="dot b">🔔</div><h3>Reminders</h3><p>Pick a time and NoteIt sends a notification that opens the note.</p></div>
+          <div class="card"><div class="dot p">📚</div><h3>All Notes, organized</h3><p>Notebooks, #tags, favorites, archive, and trash, in one window with fast search.</p></div>
+          <div class="card"><div class="dot y">⌨️</div><h3>Quick capture</h3><p>Press ⌃⌥N in any app for a new note, or make one from selected text through the Services menu.</p></div>
+          <div class="card"><div class="dot b">☁️</div><h3>Sync and backups</h3><p>Sign in to sync your notes across Macs. NoteIt also keeps a daily backup you can restore.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="ai">
+      <div class="wrap">
+        <h2>AI that edits, not chats.</h2>
+        <p class="sub">Click ✦ on a note and NoteIt rewrites it in place. Undo puts the original back.</p>
+        <div class="ai">
+          <div class="card">
+            <h3>One-click actions</h3>
+            <p>Built-in actions for everyday notes, and you can write your own.</p>
+            <ul>
+              <li>Fix Spelling &amp; Grammar</li><li>Make Shorter</li><li>Make Longer</li><li>Summarize</li>
+              <li>Make a List</li><li>Make a Checklist</li><li>Professional Tone</li><li>Friendly Tone</li><li>Translate</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Your provider, your key</h3>
+            <p>Use Claude, OpenAI, Gemini, Groq, OpenRouter, or any OpenAI-compatible service. Prefer to stay offline? Point it at Ollama or LM Studio on your own Mac. API keys stay in the macOS Keychain.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="install">
+      <div class="wrap">
+        <h2>Install NoteIt.</h2>
+        <p class="sub">The quickest way is Homebrew. It also keeps NoteIt up to date.</p>
+        <div class="install">
+          <ol>
+            <li>Open Terminal and run:<br>
+              <div class="brew"><code><span class="prompt">$ </span>brew install --cask its-ash/tap/noteit</code><button type="button" data-copy="brew install --cask its-ash/tap/noteit">Copy</button></div>
+            </li>
+            <li>Find the NoteIt icon in the menu bar at the top of your screen. NoteIt has no Dock icon.</li>
+            <li>To update later, run <code>brew upgrade --cask noteit</code>.</li>
+          </ol>
+          <p class="meta" style="text-align:center;margin-top:24px">Prefer a direct download? Get the zip from the <a href="https://github.com/its-ash/noteit/releases/latest">latest release</a> and drag NoteIt into Applications.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <p><a href="https://github.com/its-ash/noteit">Source on GitHub</a> · <a href="https://github.com/its-ash/noteit/releases">Releases</a> · <a href="https://tap.itsash.in">More apps from its-ash</a></p>
+    </div>
+  </footer>
+
+  <script>
+    for (const b of document.querySelectorAll("button[data-copy]")) {
+      b.addEventListener("click", async () => {
+        try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = "Copied"; }
+        catch { b.textContent = "Press ⌘C"; }
+        setTimeout(() => (b.textContent = "Copy"), 1600);
+      });
+    }
+  </script>
+</body>
+</html>

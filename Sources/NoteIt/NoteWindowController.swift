@@ -227,6 +227,45 @@ final class NoteTextView: NSTextView {
   }
 }
 
+/// Scrolls note text up and down only. The text always wraps to the visible width, and the
+/// scroller stays on screen whenever the text is taller than the view.
+final class NoteScrollView: NSScrollView {
+  override init(frame: NSRect) {
+    super.init(frame: frame)
+    verticalScroller = KnobScroller()
+    hasVerticalScroller = true
+    hasHorizontalScroller = false
+    autohidesScrollers = true
+    super.scrollerStyle = .legacy
+    drawsBackground = false
+    borderType = .noBorder
+  }
+
+  @available(*, unavailable)
+  required init?(coder: NSCoder) { fatalError() }
+
+  /// Legacy scrollers stay visible; overlay ones fade out. AppKit resets the style when the
+  /// system scroll bar setting changes, so pin it here.
+  override var scrollerStyle: NSScroller.Style {
+    get { .legacy }
+    set { super.scrollerStyle = .legacy }
+  }
+
+  /// Keeps the text exactly as wide as the visible area, so lines wrap there and never scroll sideways.
+  override func tile() {
+    super.tile()
+    guard let doc = documentView else { return }
+    let w = contentSize.width
+    if doc.frame.width != w { doc.setFrameSize(NSSize(width: w, height: doc.frame.height)) }
+  }
+}
+
+/// A scroller that draws only its knob, so it sits cleanly on the note's paper.
+private final class KnobScroller: NSScroller {
+  override class var isCompatibleWithOverlayScrollers: Bool { false }
+  override func drawKnobSlot(in slotRect: NSRect, highlight flag: Bool) {}
+}
+
 @MainActor
 final class NoteWindowController: NSWindowController, NSWindowDelegate, NSTextViewDelegate, NSMenuItemValidation {
   private(set) var note: Note
@@ -262,7 +301,7 @@ final class NoteWindowController: NSWindowController, NSWindowDelegate, NSTextVi
     self.store = store
     self.prefs = prefs
     self.texts = texts
-    scroll = NSScrollView()
+    scroll = NoteScrollView()
     textView = texts.makeTextView(note.id, size: note.frame.size)
     ai = AIEditor(prefs: prefs)
     let w = NoteWindow(contentRect: note.frame, styleMask: [.borderless, .resizable], backing: .buffered, defer: false)
@@ -394,11 +433,6 @@ final class NoteWindowController: NSWindowController, NSWindowDelegate, NSTextVi
     }
 
     scroll.documentView = textView
-    scroll.hasVerticalScroller = true
-    scroll.autohidesScrollers = true
-    scroll.drawsBackground = false
-    scroll.borderType = .noBorder
-    scroll.scrollerStyle = .overlay
     scroll.translatesAutoresizingMaskIntoConstraints = false
     header.translatesAutoresizingMaskIntoConstraints = false
     grip.translatesAutoresizingMaskIntoConstraints = false

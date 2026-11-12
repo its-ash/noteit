@@ -9,11 +9,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation, 
   /// One sticky window per pinned note.
   private var controllers: [NoteWindowController] = []
   private let aiMenu = NSMenu(title: "AI")
+  /// NoteIt's icon in the menu bar, always shown.
+  private var statusItem: NSStatusItem?
 
   // MARK: lifecycle
 
   func applicationDidFinishLaunching(_ n: Notification) {
     NSApp.mainMenu = buildMenu()
+    setUpStatusItem()
     NSApp.servicesProvider = self
     NSUpdateDynamicServices()
     store.purgeTrash()
@@ -83,13 +86,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation, 
 
   func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool { true }
 
-  func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
+  // MARK: menu bar
+
+  /// NoteIt's only app icon: it has no Dock icon.
+  private func setUpStatusItem() {
+    let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+    let image = NSImage(systemSymbolName: "note.text", accessibilityDescription: "NoteIt")
+    image?.isTemplate = true
+    item.button?.image = image
+    item.button?.toolTip = "NoteIt"
     let m = NSMenu()
     m.addItem(withTitle: "New Note", action: #selector(newNote(_:)), keyEquivalent: "").target = self
     m.addItem(withTitle: "New Note from Clipboard", action: #selector(newNoteFromClipboard(_:)), keyEquivalent: "").target = self
     m.addItem(withTitle: "All Notes", action: #selector(showNotebook(_:)), keyEquivalent: "").target = self
     m.addItem(withTitle: "Search All Notes", action: #selector(searchAllNotes(_:)), keyEquivalent: "").target = self
-    return m
+    m.addItem(.separator())
+    m.addItem(withTitle: "Settings…", action: #selector(showSettings(_:)), keyEquivalent: "").target = self
+    m.addItem(.separator())
+    m.addItem(withTitle: "Quit NoteIt", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "")
+    item.menu = m
+    statusItem = item
   }
 
   // MARK: notes

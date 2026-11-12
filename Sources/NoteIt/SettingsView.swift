@@ -1,4 +1,5 @@
 import AppKit
+import ServiceManagement
 import SwiftUI
 
 /// Native toolbar-style Settings window: General, AI, Actions, and Sync.
@@ -56,6 +57,7 @@ private func pane(@ViewBuilder _ content: () -> some View) -> some View {
 private struct GeneralPane: View {
   @Environment(Prefs.self) private var prefs
   @State private var login = Prefs.shared.launchAtLogin
+  @State private var needsApproval = Prefs.shared.launchAtLoginNeedsApproval
 
   var body: some View {
     @Bindable var prefs = prefs
@@ -94,9 +96,24 @@ private struct GeneralPane: View {
         Toggle("Show the AI button on notes", isOn: $prefs.showAIButton)
         Toggle("Snap notes to screen edges and to each other", isOn: $prefs.snapNotes)
       }
-      Section {
+      Section("Startup") {
         Toggle("Open NoteIt at login", isOn: $login)
-          .onChange(of: login) { prefs.launchAtLogin = login }
+          .onChange(of: login) {
+            prefs.launchAtLogin = login
+            // Show what macOS actually did; registering can fail or wait for approval.
+            login = prefs.launchAtLogin
+            needsApproval = prefs.launchAtLoginNeedsApproval
+          }
+        if needsApproval {
+          LabeledContent {
+            Button("Open Login Items") { SMAppService.openSystemSettingsLoginItems() }
+          } label: {
+            Text("Allow NoteIt in System Settings so it can open at login.")
+              .foregroundStyle(.secondary)
+          }
+        }
+      }
+      Section {
         Toggle("Press \(Hotkey.label) in any app for a new note", isOn: $prefs.quickCapture)
       }
       Section {

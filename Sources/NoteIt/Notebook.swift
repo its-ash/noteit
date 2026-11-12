@@ -900,12 +900,8 @@ private struct NoteEditor: NSViewRepresentable {
     tv.extraMenu = { [weak model] in model?.ai.menuItems() ?? [] }
     model.ai.textView = tv
     model.editor = tv
-    let scroll = NSScrollView()
+    let scroll = NoteScrollView()
     scroll.documentView = tv
-    scroll.hasVerticalScroller = true
-    scroll.autohidesScrollers = true
-    scroll.drawsBackground = false
-    scroll.borderType = .noBorder
     scroll.appearance = NSAppearance(named: .aqua)
     return scroll
   }
